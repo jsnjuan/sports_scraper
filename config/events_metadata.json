@@ -1,0 +1,56 @@
+[
+  {
+    "site": "asdeporte",
+    "event_slug": "carrera_37aniv_conagua_2026",
+    "event_name": "Carrera 37° Aniversario CONAGUA 2026",
+    "base_url": "https://www.asdeporte.com/evento/carrera-conagua-2026-11b/resultados",
+    "categories": [
+      "6+Kilometros"
+    ],
+    "per_page": 20
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "lululemon_cdmx_2026",
+    "event_name": "Lululemon CDMX 2026",
+    "base_url": "https://resultados.cronocom.mx/crono-projects/lululemon-cdmx-2026/index.html",
+    "categories": [
+      "10K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "scotiabank_2026",
+    "event_name": "Scotiabank 2026",
+    "base_url": "https://resultados.cronocom.mx/crono-projects/scotiabank/index.html",
+    "categories": [
+      "3K",
+      "5K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "carrera_aeromexico_2026",
+    "event_name": "carrera Aeromexico 2026",
+    "base_url": "https://resultados.cronocom.mx/crono-projects/carrera-aeromexico/index.html",
+    "categories": [
+      "5K",
+      "10K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "sunset_rush_acapulco_2026",
+    "event_name": "Sunset Rush Acapulco 2026",
+    "base_url": "https://resultados.cronocom.mx/crono-projects/microbiot-fit-sunset-rush-acapulco-5k-10k-y-21k-2026/index.html",
+    "categories": [
+      "5K",
+      "10K",
+      "21K"
+    ],
+    "per_page": 100
+  }
+]
