@@ -52,5 +52,140 @@
       "21K"
     ],
     "per_page": 100
+  },
+  {
+    "site": "asdeporte",
+    "event_slug": "medio_maraton_maravatio_primavera_2026",
+    "event_name": "Medio Maratón Maravatío Primavera 2026",
+    "base_url": "https://www.asdeporte.com/evento/medio-marato-n-maravati-o-primavera-2026-id9/resultados",
+    "categories": [
+      "3K",
+      "5K",
+      "10K",
+      "21K"
+    ],
+    "per_page": 20
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "hello_kitty_gdl_2025",
+    "event_name": "Hello Kitty and Friends 23 nov 2025",
+    "base_url": "https://resultados.cronocom.mx/hello_kitty_gdl_2025/",
+    "categories": [
+      "5K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "espn_2025",
+    "event_name": "Runaholics ESPN 2025",
+    "base_url": "https://resultados.cronocom.mx/espn_2025/",
+    "categories": [
+      "10K",
+      "21K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "asdeporte",
+    "event_slug": "maraton_cabo_bcs_2026",
+    "event_name": "Maratón Cabo San Lucas, Los Cabos, BCS 2026",
+    "base_url": "https://www.asdeporte.com/evento/marato-n-y-medio-marato-n-cabo-san-lucas--los-cabos--bjs-2026-kuj/resultados",
+    "categories": [
+      "5K",
+      "10K",
+      "21K",
+      "42K"
+    ],
+    "per_page": 20
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "siclo_10K",
+    "event_name": "Siclo 10K un km por año",
+    "base_url": "https://resultados.cronocom.mx/siclo_2025/",
+    "categories": [
+      "10K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "10a_carrera_dia_trabajador_2025",
+    "event_name": "10a Carrera del día del trabajador de la salud 2025",
+    "base_url": "https://resultados.cronocom.mx/sindicato2025/",
+    "categories": [
+      "5K",
+      "10K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "lockton_11a_carrera_2025",
+    "event_name": "LOCKTON 11a carrera 2025",
+    "base_url": "https://resultados.cronocom.mx/lockton2025/",
+    "categories": [
+      "5K",
+      "10K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "asdeporte",
+    "event_slug": "hazte_el_check_jalisco_2026",
+    "event_name": "Hazte el Check, Sigue el Juego - 1er. Carrera contra el Cáncer de Próstata",
+    "base_url": "https://www.asdeporte.com/evento/1ra--carrera-contra-el-ca-ncer-de-pro-stata--movember-piensa-en-azul--uib/resultados",
+    "categories": [
+      "5Km"
+    ],
+    "per_page": 20
+  },
+  {
+    "site": "asdeporte",
+    "event_slug": "8a_carrera_nocturna_gnp_2026",
+    "event_name": "8ª Carrera Nocturna Vivir es Increíble",
+    "base_url": "https://www.asdeporte.com/evento/8--carrera-nocturna-vivir-es-increi-ble-oad/resultados",
+    "categories": [
+      "4.3K",
+      "8.6K",
+      "12.9K"
+    ],
+    "per_page": 20
+  }, 
+  {
+    "site": "cronocom",
+    "event_slug": "cinepolis_2025",
+    "event_name": "15a Carrera Fundación Cinepolis",
+    "base_url": "https://resultados.cronocom.mx/cinepolis2025/",
+    "categories": [
+      "5K",
+      "10K", 
+      "15K"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "cronocom",
+    "event_slug": "cdp_21k_2025",
+    "event_name": "Carrera del día del padre 2025",
+    "base_url": "https://resultados.cronocom.mx/cdp_2025/cronometraje/",
+    "categories": [
+      "21K",
+      "zone"
+    ],
+    "per_page": 100
+  },
+  {
+    "site": "asdeporte",
+    "event_slug": "shrek_run_2026",
+    "event_name": "Shrek Run 2026",
+    "base_url": "https://www.asdeporte.com/evento/carrera-shrek-2025-7s9/resultados",
+    "categories": [
+      "5K",
+      "15K"
+    ],
+    "per_page": 20
   }
 ]

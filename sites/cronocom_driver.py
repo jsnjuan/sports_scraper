@@ -1,5 +1,5 @@
 import asyncio
-from sites.base_driver import BaseDriver
+from sites.base_driver import BaseDriver, NO_MORE_PAGES
 
 class CronocomDriver(BaseDriver):
 
@@ -7,7 +7,7 @@ class CronocomDriver(BaseDriver):
         # The Cronocom API returns all the data in a single JSON requested by the client
         # So we only need to fetch the data on page 1, and return None for consecutive pages to stop
         if page_number > 1:
-            return None
+            return NO_MORE_PAGES
 
         base_url = event_config['base_url']
         expected_json_path = f"data/data_{event_config['distance'].lower()}.json"

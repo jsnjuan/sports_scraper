@@ -12,12 +12,14 @@ async def run_event(browser_manager, driver, event_config):
 
         print(f"Starting category: {category}")
 
-        await run_category(
+        did_work = await run_category(
             browser_manager,
             driver,
             event_config,
             category
         )
+        if did_work:
+            await apply_delay(stage='event')
 
 
 async def run_category(browser_manager, driver, event_config, category):
@@ -27,7 +29,10 @@ async def run_category(browser_manager, driver, event_config, category):
         "distance": category
     }
 
-    await run_pages(browser_manager, driver, category_config)
+    did_work = await run_pages(browser_manager, driver, category_config)
+    if did_work:
+        await apply_delay(stage='category')
+    return did_work
 
 
 async def run_pages(browser_manager, driver, category_config):
@@ -36,7 +41,7 @@ async def run_pages(browser_manager, driver, category_config):
 
     if metadata and metadata.get("completed"):
         print("Event is completed. Skipping.")
-        return
+        return False
 
     if not metadata:
         metadata = {
@@ -90,7 +95,7 @@ async def run_pages(browser_manager, driver, category_config):
             if not records:
                 metadata["completed"] = True
                 save_metadata(category_config, metadata)
-                return
+                return True
 
             save_page(category_config, page_number, records)
 
@@ -103,13 +108,13 @@ async def run_pages(browser_manager, driver, category_config):
 
         else:
             print("Too many failures. Aborting.")
-            return
+            return True
 
         if page_number >= total_pages:
             metadata["completed"] = True
             save_metadata(category_config, metadata)
             print("Event completed.")
-            return
+            return True
 
         page_number += 1
-        await apply_delay()
+        await apply_delay(stage='page')

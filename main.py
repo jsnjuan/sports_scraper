@@ -4,6 +4,7 @@ from core.browser_manager import BrowserManager
 from core.engine import run_event
 from sites.asdeporte_driver import AsDeporteDriver
 from sites.cronocom_driver import CronocomDriver
+from sites.metamx_driver import MetamxDriver
 
 
 async def main():
@@ -20,6 +21,8 @@ async def main():
             driver = AsDeporteDriver()
         elif event["site"] == "cronocom":
             driver = CronocomDriver()
+        elif event["site"] == "metamx":
+            driver = MetamxDriver()
         else:
             continue
 
