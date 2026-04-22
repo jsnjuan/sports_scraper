@@ -65,7 +65,10 @@ class MetamxDriver(BaseDriver):
 
             print("JSON data has keys:", data.keys())
 
-            return data
+            return {
+                "totalpages": 1,
+                "records": data["data"]
+            }
 
         except Exception as e:
             print("Exception during page fetch:", e)

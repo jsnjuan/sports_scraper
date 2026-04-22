@@ -25,7 +25,10 @@ class AsDeporteDriver(BaseDriver):
                     if data and "data" in data:
                         target = data["data"].get("getEventResults") or data["data"].get("findResult")
                         if target and "records" in target:
-                            graphql_data = target
+                            graphql_data = {
+                                "records": target["records"],
+                                "totalpages": target.get("totalPages", target.get("totalpages", 1))
+                            }
                             response_event.set()
                 except Exception:
                     pass

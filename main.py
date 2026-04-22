@@ -2,6 +2,7 @@ import asyncio
 import json
 from core.browser_manager import BrowserManager
 from core.engine import run_event
+from core.delays import apply_delay
 from sites.asdeporte_driver import AsDeporteDriver
 from sites.cronocom_driver import CronocomDriver
 from sites.metamx_driver import MetamxDriver
@@ -9,7 +10,7 @@ from sites.metamx_driver import MetamxDriver
 
 async def main():
 
-    with open("config/events_metadata.json") as f:
+    with open("config/events_metadata.json", encoding="utf-8") as f:
         events = json.load(f)
 
     browser_manager = BrowserManager()
@@ -28,11 +29,14 @@ async def main():
 
         print(f"Iniciando evento: {event['event_slug']}")
 
-        await run_event(
+        did_work = await run_event(
             browser_manager,
             driver,
             event
         )
+
+        if did_work and event != events[-1]:
+            await apply_delay(stage='event')
 
     await browser_manager.close()
 
