@@ -6,24 +6,22 @@ from pathlib import Path
 app = FastAPI()
 
 def get_db_connection():
-    # Attempt multiple common paths in Vercel
-    possible_paths = [
-        Path(__file__).resolve().parent.parent / "database" / "races.db",
-        Path.cwd() / "database" / "races.db",
-        Path("/var/task/database/races.db"),
-        Path("/var/task/webapp/database/races.db"),
-        # If Vercel flattens the structure
-        Path.cwd() / "races.db",
-    ]
+    # Since we moved the DB to the same folder as this script, 
+    # it's guaranteed to be included in the serverless function.
+    db_path = Path(__file__).resolve().parent / "races.db"
     
-    for path in possible_paths:
-        if path.exists():
-            conn = sqlite3.connect(path)
-            conn.row_factory = sqlite3.Row
-            return conn
+    if not db_path.exists():
+        # Fallback for Vercel's flat deployment structure
+        db_path = Path.cwd() / "api" / "races.db"
+        if not db_path.exists():
+             db_path = Path.cwd() / "races.db"
 
-    # Fallback/Error case
-    raise FileNotFoundError(f"Could not find database in any of: {[str(p) for p in possible_paths]}")
+    if not db_path.exists():
+        raise FileNotFoundError(f"Database not found at {db_path}. Current dir: {os.listdir('.')}")
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 @app.get("/api/debug")
 def debug():

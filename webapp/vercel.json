@@ -6,10 +6,7 @@
     },
     {
       "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": ["database/**"]
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [

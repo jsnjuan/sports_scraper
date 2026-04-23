@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 # Connect to SQLite inside the webapp for easy deployment bounding
-DB_PATH = Path("webapp/database/races.db")
+DB_PATH = Path("webapp/api/races.db")
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
