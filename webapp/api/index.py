@@ -6,29 +6,52 @@ from pathlib import Path
 app = FastAPI()
 
 def get_db_connection():
-    # In Vercel, the app root is usually /var/task/
-    # We look for database/races.db relative to the project root
-    base_dir = Path(__file__).resolve().parent.parent
-    db_path = base_dir / "database" / "races.db"
+    # Attempt multiple common paths in Vercel
+    possible_paths = [
+        Path(__file__).resolve().parent.parent / "database" / "races.db",
+        Path.cwd() / "database" / "races.db",
+        Path("/var/task/database/races.db"),
+        Path("/var/task/webapp/database/races.db"),
+        # If Vercel flattens the structure
+        Path.cwd() / "races.db",
+    ]
     
-    if not db_path.exists():
-        # Fallback for different Vercel layouts
-        db_path = Path("/var/task/database/races.db")
+    for path in possible_paths:
+        if path.exists():
+            conn = sqlite3.connect(path)
+            conn.row_factory = sqlite3.Row
+            return conn
 
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+    # Fallback/Error case
+    raise FileNotFoundError(f"Could not find database in any of: {[str(p) for p in possible_paths]}")
 
 @app.get("/api/debug")
 def debug():
+    import os
     base_dir = Path(__file__).resolve().parent.parent
-    db_path = base_dir / "database" / "races.db"
+    
+    # List files in some key directories to see where we are
+    try:
+        var_task_files = os.listdir("/var/task")
+    except:
+        var_task_files = ["Could not access /var/task"]
+        
+    try:
+        cwd_files = os.listdir(".")
+    except:
+        cwd_files = ["Could not access ."]
+
     return {
         "file": __file__,
-        "resolved_base": str(base_dir),
-        "db_path": str(db_path),
-        "exists": db_path.exists(),
-        "cwd": str(Path.cwd())
+        "cwd": os.getcwd(),
+        "var_task_files": var_task_files,
+        "cwd_files": cwd_files,
+        "env": dict(os.environ),
+        "db_searched_paths": [
+            str(Path(__file__).resolve().parent.parent / "database" / "races.db"),
+            str(Path.cwd() / "database" / "races.db"),
+            "/var/task/database/races.db"
+        ]
     }
 
 @app.get("/api/ping")
