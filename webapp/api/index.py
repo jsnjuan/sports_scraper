@@ -6,13 +6,30 @@ from pathlib import Path
 app = FastAPI()
 
 def get_db_connection():
-    # Resolve DB path relative to this file's location so it works
-    # regardless of what directory uvicorn is launched from.
-    here = Path(__file__).parent.parent  # webapp/
-    db_path = here / "database" / "races.db"
+    # In Vercel, the app root is usually /var/task/
+    # We look for database/races.db relative to the project root
+    base_dir = Path(__file__).resolve().parent.parent
+    db_path = base_dir / "database" / "races.db"
+    
+    if not db_path.exists():
+        # Fallback for different Vercel layouts
+        db_path = Path("/var/task/database/races.db")
+
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
+
+@app.get("/api/debug")
+def debug():
+    base_dir = Path(__file__).resolve().parent.parent
+    db_path = base_dir / "database" / "races.db"
+    return {
+        "file": __file__,
+        "resolved_base": str(base_dir),
+        "db_path": str(db_path),
+        "exists": db_path.exists(),
+        "cwd": str(Path.cwd())
+    }
 
 @app.get("/api/ping")
 def ping():
