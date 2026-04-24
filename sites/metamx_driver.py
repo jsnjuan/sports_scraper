@@ -18,22 +18,29 @@ class MetamxDriver(BaseDriver):
 
         url = event_config['base_url']
         catches = {"metadata":None, "final_data":None}
-        data_json_url = None
+        data_json_urls = set()
         competition_id = extract_competition_id(url)
 
         response_event = asyncio.Event()
 
         async def handle_response(response):
-            nonlocal data_json_url
+            nonlocal data_json_urls
             if f"/rankings/{event_config['distance']}" in response.url and not catches["metadata"]:
                 print("--- First JSON detected in the network ---")
                 try:
                     metadata = await response.json()
                     catches["metadata"] = metadata
-                    data_json_url = metadata["data"][0]["resources"]["uri"]
+
+                    for item in metadata.get("data", []):
+                        if item.get("split") == "META" and item.get("type") == "":
+                            uri = item.get("resources", {}).get("uri")
+                            if uri:
+                                data_json_urls.add(uri)
+
+
                 except Exception as e:
                     print(f"Error processing 1st JSON: {e}")
-            elif data_json_url and data_json_url in response.url:
+            elif data_json_urls and any(candidate in response.url for candidate in data_json_urls):
                 print("--- Second JSON detected in the network ---")
                 try:
                     catches["final_data"] = await response.json()

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import sqlite3
 import pandas as pd
 from pathlib import Path
+import os
 
 app = FastAPI()
 
