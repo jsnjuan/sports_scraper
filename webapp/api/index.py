@@ -97,3 +97,77 @@ def get_stats(event_slug: str, distance: str):
         "age_records": age_records,
         "scatter_records": scatter_records,
     }
+
+@app.get("/api/overview")
+def get_overview():
+    conn = get_db_connection()
+    query = """
+    SELECT distance, gender, finish_time_seconds 
+    FROM runners 
+    WHERE finish_time_seconds IS NOT NULL AND gender IS NOT NULL
+    """
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    if df.empty:
+        return {}
+
+    # Normalize gender
+    df['gender'] = df['gender'].str[0].str.upper()
+    df = df[df['gender'].isin(['M', 'F'])]
+
+    # Normalize distance groups
+    def normalize_dist(d):
+        d = str(d).upper()
+        if '21' in d: return '21K'
+        if '10' in d: return '10K'
+        if '5' in d: return '5K'
+        if '3' in d: return '3K'
+        return None
+
+    df['dist_group'] = df['distance'].apply(normalize_dist)
+    df = df.dropna(subset=['dist_group'])
+
+    results = {}
+    for dist in ['3K', '5K', '10K', '21K']:
+        dist_df = df[df['dist_group'] == dist].copy()
+        if dist_df.empty:
+            continue
+        
+        # Bin by minute
+        dist_df['mins'] = (dist_df['finish_time_seconds'] / 60).astype(int)
+        
+        # Filter outliers for cleaner plots (e.g., 3 standard deviations or hard limits)
+        # For simplicity, just use value_counts
+        male_counts = dist_df[dist_df['gender'] == 'M']['mins'].value_counts().sort_index().to_dict()
+        female_counts = dist_df[dist_df['gender'] == 'F']['mins'].value_counts().sort_index().to_dict()
+        
+        # Combine labels to have a unified X-axis (bins)
+        all_mins = sorted(list(set(male_counts.keys()) | set(female_counts.keys())))
+        
+        # If there's too much sparse data, we could group bins (e.g., every 2 mins)
+        # But let's start with 1 min as requested "age will be the minutes"
+        
+        # Statistics
+        m_mins = dist_df[dist_df['gender'] == 'M']['mins']
+        f_mins = dist_df[dist_df['gender'] == 'F']['mins']
+
+        def get_stat(series, func):
+            if series.empty: return None
+            val = func(series)
+            return int(val) if pd.notna(val) else None
+
+        results[dist] = {
+            "labels": [f"{m}m" for m in all_mins],
+            "male": [male_counts.get(m, 0) for m in all_mins],
+            "female": [female_counts.get(m, 0) for m in all_mins],
+            "total_participants": len(dist_df),
+            "stats": {
+                "fastest_male": get_stat(m_mins, min),
+                "fastest_female": get_stat(f_mins, min),
+                "median_male": get_stat(m_mins, lambda x: x.median()),
+                "median_female": get_stat(f_mins, lambda x: x.median()),
+            }
+        }
+        
+    return results
