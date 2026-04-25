@@ -107,6 +107,25 @@ for site_dir in data_dir.iterdir():
                             finish_time_str = rec.get("FinishTime")
                             # Age is usually not provided clearly, but sometimes it is mapped. Default None.
                             age = None 
+                        
+                        elif site == "metamx":
+                            data_dict = {item['key']: item['value'] for item in rec['data']}
+                            athlete = data_dict.get("name")
+                            gender = data_dict.get("gender", "")
+                            if gender:
+                                gender = gender[0].upper()
+                            age = data_dict.get("age")
+                            category = data_dict.get("category")
+                            finish_time_str = data_dict.get("time")
+                            
+                        elif site == "marcate":
+                            athlete = rec.get("nombre")
+                            gender = rec.get("sexo", "")
+                            if gender:
+                                gender = gender[0].upper()
+                            age = rec.get("edad")
+                            category = rec.get("categoria")
+                            finish_time_str = rec.get("tiempoChip")
                             
                         if not finish_time_str or finish_time_str == "00:00:00":
                             continue # Didn't finish
