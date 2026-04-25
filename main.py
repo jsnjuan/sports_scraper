@@ -6,6 +6,7 @@ from core.delays import apply_delay
 from sites.asdeporte_driver import AsDeporteDriver
 from sites.cronocom_driver import CronocomDriver
 from sites.metamx_driver import MetamxDriver
+from sites.marcate_driver import MarcateDriver
 
 
 async def main():
@@ -24,6 +25,8 @@ async def main():
             driver = CronocomDriver()
         elif event["site"] == "metamx":
             driver = MetamxDriver()
+        elif event["site"] == "marcate":
+            driver = MarcateDriver()
         else:
             continue
 
