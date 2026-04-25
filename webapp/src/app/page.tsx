@@ -7,18 +7,20 @@ import {
   LinearScale,
   BarElement,
   PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
   ArcElement,
 } from "chart.js";
-import { Bar, Doughnut, Scatter } from "react-chartjs-2";
+import { Bar, Doughnut, Scatter, Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   PointElement,
+  LineElement,
   ArcElement,
   Title,
   Tooltip,
@@ -33,6 +35,34 @@ const CHART_COLORS = {
   blue: "rgba(59, 130, 246, 0.75)",
   purple: "rgba(168, 85, 247, 0.75)",
   emerald: "rgba(16, 185, 129, 0.55)",
+};
+
+const getGradientColor = (
+  gender: "male" | "female",
+  value: number // 0 to 100
+): string => {
+  const baseColors = {
+    male: { r: 59, g: 130, b: 246 }, // Blue
+    female: { r: 236, g: 72, b: 153 }, // Pink
+  };
+
+  const color = baseColors[gender];
+  const alpha = 0.75;
+  const percentage = Math.min(100, Math.max(0, value)) / 100;
+
+  // Linear interpolation: White (255,255,255) to Target Color
+  const r = Math.round(255 - (255 - color.r) * percentage);
+  const g = Math.round(255 - (255 - color.g) * percentage);
+  const b = Math.round(255 - (255 - color.b) * percentage);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const getSequentialColor = (index: number, total: number) => {
+  if (total <= 1) return CHART_COLORS.indigo;
+  const ratio = index / (total - 1);
+  const h = 230 + ratio * 100; // Gradient from blue-ish to pink-ish
+  return `hsla(${h}, 70%, 60%, 0.8)`;
 };
 
 const CHART_OPTS_BASE = {
@@ -128,6 +158,58 @@ export default function Home() {
           borderRadius: { topRight: 4, bottomRight: 4 },
         },
       ],
+    };
+  };
+
+  const buildComparisonData = (dist: string) => {
+    const d = overviewData?.[dist];
+    if (!d || !d.races?.length) return null;
+
+    const allLabels = d.labels;
+    const datasets: any[] = [];
+
+    d.races.forEach((race: any, idx: number) => {
+      const percentage = d.races.length > 1 ? (idx / (d.races.length - 1)) * 100 : 100;
+      const maleColor = getGradientColor("male", 30 + (percentage * 0.7)); // Range 30-100 to avoid too much white
+      const femaleColor = getGradientColor("female", 30 + (percentage * 0.7));
+      const raceName = race.event_slug.replace(/_/g, " ");
+
+      // Male series (Positive Y)
+      datasets.push({
+        label: `${raceName} (Male)`,
+        data: allLabels.map((label: string) => {
+          const min = label.replace("m", "");
+          return race.male_counts[min] || 0;
+        }),
+        borderColor: maleColor,
+        backgroundColor: "transparent",
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHitRadius: 10,
+        hoverBorderWidth: 3,
+        tension: 0.4,
+      });
+
+      // Female series (Negative Y)
+      datasets.push({
+        label: `${raceName} (Female)`,
+        data: allLabels.map((label: string) => {
+          const min = label.replace("m", "");
+          return -(race.female_counts[min] || 0);
+        }),
+        borderColor: femaleColor,
+        backgroundColor: "transparent",
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHitRadius: 10,
+        hoverBorderWidth: 3,
+        tension: 0.4,
+      });
+    });
+
+    return {
+      labels: allLabels,
+      datasets,
     };
   };
 
@@ -417,89 +499,172 @@ export default function Home() {
           )
         ) : (
           /* Overview Tab Content */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="md:col-span-2">
-              <h2 className="text-2xl font-bold text-neutral-200 mb-2">Performance Pyramid</h2>
-              <p className="text-neutral-500 text-sm mb-6 max-w-2xl">
-                Comparing finish time distributions between genders across all scraped events. 
-                Minutes are on the Y-axis, showing participant volume for each time bracket.
-              </p>
-            </div>
+          <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* 1. All Finish Times (Race Comparison) */}
+            <section className="flex flex-col gap-8">
+              <div>
+                <h2 className="text-2xl font-bold text-neutral-200 mb-2">Race Comparisons</h2>
+                <p className="text-neutral-500 text-sm max-w-2xl">
+                  Vertical reflected line plots (Male up, Female down). X-axis shows minutes; Y-axis shows participant volume.
+                  Scale is symmetric to allow absolute comparison between genders.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-8">
+                {["3K", "5K", "10K", "21K"].map((dist) => {
+                  const comparisonData = buildComparisonData(dist);
+                  if (!comparisonData) return null;
+                  
+                  // Calculate symmetric max for absolute comparison
+                  const d = overviewData[dist];
+                  let maxVal = 0;
+                  d.races.forEach((r: any) => {
+                    const mMax = Math.max(...(Object.values(r.male_counts) as number[]), 0);
+                    const fMax = Math.max(...(Object.values(r.female_counts) as number[]), 0);
+                    maxVal = Math.max(maxVal, mMax, fMax);
+                  });
 
-            {["3K", "5K", "10K", "21K"].map((dist) => {
-              const pyramidData = buildPyramidData(dist);
-              if (!pyramidData) return null;
-              const stats = overviewData[dist].stats;
-              
-              return (
-                <div key={dist} className="flex flex-col gap-4">
-                  <ChartCard 
-                    title={`${dist} Finish Time Pyramid`} 
-                    badge={`${overviewData[dist].total_participants} runners`}
-                  >
-                    <Bar
-                      data={pyramidData}
-                      options={{
-                        indexAxis: "y",
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                          x: {
-                            stacked: false,
-                            ticks: {
-                              color: "#6b7280",
-                              callback: (value: any) => Math.abs(value), // Show absolute values
-                            },
-                            grid: { color: "rgba(255,255,255,0.04)" },
+                  return (
+                    <ChartCard 
+                      key={`comp-${dist}`} 
+                      title={`${dist} Event Comparison (Vertical Reflection)`} 
+                      badge={`${d.races.length} races`}
+                      fullWidth
+                    >
+                      <Line
+                        data={comparisonData}
+                        options={{
+                          ...CHART_OPTS_BASE,
+                          indexAxis: "x",
+                          interaction: {
+                            mode: "nearest",
+                            intersect: false,
                           },
-                          y: {
-                            beginAtZero: true,
-                            ticks: { color: "#6b7280" },
-                            grid: { display: false },
-                          },
-                        },
-                        plugins: {
-                          legend: { display: true, position: "top", labels: { color: "#9ca3af", boxWidth: 10 } },
-                          tooltip: {
-                            callbacks: {
-                              label: (context: any) => {
-                                const label = context.dataset.label || "";
-                                const value = Math.abs(context.parsed.x);
-                                return `${label}: ${value} participants`;
+                          plugins: {
+                            ...CHART_OPTS_BASE.plugins,
+                            legend: { display: false },
+                            tooltip: {
+                              ...CHART_OPTS_BASE.plugins.tooltip,
+                              callbacks: {
+                                label: (context: any) => {
+                                  const val = Math.abs(context.parsed.y);
+                                  return `${context.dataset.label}: ${val} runners`;
+                                },
                               },
                             },
                           },
-                        },
-                      }}
-                    />
-                  </ChartCard>
+                          scales: {
+                            ...CHART_OPTS_BASE.scales,
+                            x: { ...CHART_OPTS_BASE.scales.x, title: { display: true, text: "Minutes", color: "#4b5563", font: { size: 10 } } },
+                            y: { 
+                              ...CHART_OPTS_BASE.scales.y, 
+                              min: -maxVal,
+                              max: maxVal,
+                              ticks: { 
+                                ...CHART_OPTS_BASE.scales.y.ticks,
+                                callback: (v: any) => Math.abs(v) 
+                              },
+                              title: { display: true, text: "Count", color: "#4b5563", font: { size: 10 } } 
+                            },
+                          },
+                        }}
+                      />
+                    </ChartCard>
+                  );
+                })}
+              </div>
+            </section>
 
-                  {/* Facts Card */}
-                  <div className="bg-neutral-900/40 border border-neutral-800/60 p-5 rounded-2xl flex flex-col gap-4">
-                    <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Key Facts · {dist}</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-neutral-500">Fastest (M/F)</span>
-                        <span className="text-lg font-mono text-indigo-400">
-                          {stats.fastest_male}m <span className="text-neutral-700 mx-1">/</span> <span className="text-pink-400">{stats.fastest_female}m</span>
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-neutral-500">Median (M/F)</span>
-                        <span className="text-lg font-mono text-indigo-400">
-                          {stats.median_male}m <span className="text-neutral-700 mx-1">/</span> <span className="text-pink-400">{stats.median_female}m</span>
-                        </span>
+            {/* 2. Performance Pyramid */}
+            <section className="flex flex-col gap-8 pt-8 border-t border-neutral-800/50">
+              <div>
+                <h2 className="text-2xl font-bold text-neutral-200 mb-2">Performance Pyramid</h2>
+                <p className="text-neutral-500 text-sm max-w-2xl">
+                  Horizontal reflected bars comparing gender distributions. 
+                  Scale is symmetric to allow absolute comparison between genders.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {["3K", "5K", "10K", "21K"].map((dist) => {
+                  const pyramidData = buildPyramidData(dist);
+                  if (!pyramidData) return null;
+                  const d = overviewData[dist];
+                  const stats = d.stats;
+                  
+                  // Calculate symmetric max
+                  const maxVal = Math.max(...d.male, ...d.female, 0);
+                  
+                  return (
+                    <div key={dist} className="flex flex-col gap-4">
+                      <ChartCard 
+                        title={`${dist} Finish Distribution`} 
+                        badge={`${d.total_participants} runners`}
+                      >
+                        <Bar
+                          data={pyramidData}
+                          options={{
+                            indexAxis: "y",
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                              x: {
+                                min: -maxVal,
+                                max: maxVal,
+                                ticks: {
+                                  color: "#6b7280",
+                                  callback: (value: any) => Math.abs(value),
+                                },
+                                grid: { color: "rgba(255,255,255,0.04)" },
+                              },
+                              y: {
+                                ticks: { color: "#6b7280" },
+                                grid: { display: false },
+                              },
+                            },
+                            plugins: {
+                              legend: { display: true, position: "top", labels: { color: "#9ca3af", boxWidth: 10 } },
+                              tooltip: {
+                                callbacks: {
+                                  label: (context: any) => {
+                                    const label = context.dataset.label || "";
+                                    const value = Math.abs(context.parsed.x);
+                                    return `${label}: ${value} participants`;
+                                  },
+                                },
+                              },
+                            },
+                          }}
+                        />
+                      </ChartCard>
+
+                      {/* Facts Card */}
+                      <div className="bg-neutral-900/40 border border-neutral-800/60 p-5 rounded-2xl flex flex-col gap-4">
+                        <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Key Facts · {dist}</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col">
+                            <span className="text-xs text-neutral-500">Fastest (M/F)</span>
+                            <span className="text-lg font-mono text-indigo-400">
+                              {stats.fastest_male}m <span className="text-neutral-700 mx-1">/</span> <span className="text-pink-400">{stats.fastest_female}m</span>
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs text-neutral-500">Median (M/F)</span>
+                            <span className="text-lg font-mono text-indigo-400">
+                              {stats.median_male}m <span className="text-neutral-700 mx-1">/</span> <span className="text-pink-400">{stats.median_female}m</span>
+                            </span>
+                          </div>
+                        </div>
+                        {stats.median_male && stats.median_female && (
+                          <p className="text-sm text-neutral-400 italic">
+                            The gender performance gap is approximately {Math.abs(stats.median_male - stats.median_female)} minutes at the median level.
+                          </p>
+                        )}
                       </div>
                     </div>
-                    {stats.median_male && stats.median_female && (
-                      <p className="text-sm text-neutral-400 italic">
-                        The gender performance gap is approximately {Math.abs(stats.median_male - stats.median_female)} minutes at the median level.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </section>
           </div>
         )}
       </div>

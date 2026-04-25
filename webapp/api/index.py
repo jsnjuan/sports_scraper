@@ -102,7 +102,7 @@ def get_stats(event_slug: str, distance: str):
 def get_overview():
     conn = get_db_connection()
     query = """
-    SELECT distance, gender, finish_time_seconds 
+    SELECT distance, gender, finish_time_seconds, event_slug 
     FROM runners 
     WHERE finish_time_seconds IS NOT NULL AND gender IS NOT NULL
     """
@@ -134,20 +134,29 @@ def get_overview():
         if dist_df.empty:
             continue
         
-        # Bin by minute
+        # Bin by minute for high-resolution pyramids
         dist_df['mins'] = (dist_df['finish_time_seconds'] / 60).astype(int)
         
-        # Filter outliers for cleaner plots (e.g., 3 standard deviations or hard limits)
-        # For simplicity, just use value_counts
-        male_counts = dist_df[dist_df['gender'] == 'M']['mins'].value_counts().sort_index().to_dict()
-        female_counts = dist_df[dist_df['gender'] == 'F']['mins'].value_counts().sort_index().to_dict()
+        # Pyramid Data (Aggregated)
+        total_male_counts = dist_df[dist_df['gender'] == 'M']['mins'].value_counts().sort_index().to_dict()
+        total_female_counts = dist_df[dist_df['gender'] == 'F']['mins'].value_counts().sort_index().to_dict()
+        all_mins = sorted(list(set(total_male_counts.keys()) | set(total_female_counts.keys())))
         
-        # Combine labels to have a unified X-axis (bins)
-        all_mins = sorted(list(set(male_counts.keys()) | set(female_counts.keys())))
-        
-        # If there's too much sparse data, we could group bins (e.g., every 2 mins)
-        # But let's start with 1 min as requested "age will be the minutes"
-        
+        # Individual Race Data (for overlay line plots)
+        races_data = []
+        for slug, group in dist_df.groupby('event_slug'):
+            r_male_group = group[group['gender'] == 'M']
+            r_female_group = group[group['gender'] == 'F']
+            
+            r_male_counts = r_male_group['mins'].value_counts().sort_index().to_dict()
+            r_female_counts = r_female_group['mins'].value_counts().sort_index().to_dict()
+            
+            races_data.append({
+                "event_slug": slug,
+                "male_counts": {str(m): count for m, count in r_male_counts.items()},
+                "female_counts": {str(m): count for m, count in r_female_counts.items()}
+            })
+
         # Statistics
         m_mins = dist_df[dist_df['gender'] == 'M']['mins']
         f_mins = dist_df[dist_df['gender'] == 'F']['mins']
@@ -159,9 +168,10 @@ def get_overview():
 
         results[dist] = {
             "labels": [f"{m}m" for m in all_mins],
-            "male": [male_counts.get(m, 0) for m in all_mins],
-            "female": [female_counts.get(m, 0) for m in all_mins],
+            "male": [total_male_counts.get(m, 0) for m in all_mins],
+            "female": [total_female_counts.get(m, 0) for m in all_mins],
             "total_participants": len(dist_df),
+            "races": races_data,
             "stats": {
                 "fastest_male": get_stat(m_mins, min),
                 "fastest_female": get_stat(f_mins, min),
