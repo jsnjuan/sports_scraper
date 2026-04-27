@@ -213,6 +213,49 @@ export default function Home() {
     };
   };
 
+  const buildOverviewScatterData = () => {
+    if (!overviewData) return null;
+
+    const datasets: any[] = [];
+    const distShapes: Record<string, any> = {
+      "3K": "circle",
+      "5K": "triangle",
+      "10K": "rect",
+      "21K": "rectRot", // Diamond shape for better visibility
+    };
+
+    ["3K", "5K", "10K", "21K"].forEach((dist) => {
+      const d = overviewData[dist];
+      if (!d?.scatter?.length) return;
+
+      // Male Dataset
+      datasets.push({
+        label: `${dist} Male`,
+        data: d.scatter
+          .filter((p: any) => p.gender === "M")
+          .map((p: any) => ({ x: p.age, y: p.pace })),
+        backgroundColor: CHART_COLORS.indigo,
+        pointStyle: distShapes[dist],
+        pointRadius: 6, // Increased size
+        pointHoverRadius: 9,
+      });
+
+      // Female Dataset
+      datasets.push({
+        label: `${dist} Female`,
+        data: d.scatter
+          .filter((p: any) => p.gender === "F")
+          .map((p: any) => ({ x: p.age, y: p.pace })),
+        backgroundColor: CHART_COLORS.pink,
+        pointStyle: distShapes[dist],
+        pointRadius: 6, // Increased size
+        pointHoverRadius: 9,
+      });
+    });
+
+    return { datasets };
+  };
+
   const histogramData = (() => {
     if (!data?.finish_records?.length) return null;
     const buckets: Record<string, number> = {};
@@ -664,6 +707,47 @@ export default function Home() {
                   );
                 })}
               </div>
+            </section>
+
+            {/* 3. Global Performance Trends (Scatter) */}
+            <section className="flex flex-col gap-8 pt-8 border-t border-neutral-800/50">
+              <div>
+                <h2 className="text-2xl font-bold text-neutral-200 mb-2">Global Performance Trends</h2>
+                <p className="text-neutral-500 text-sm max-w-2xl">
+                  Aggregated pace vs age across all distances. 
+                  Identify performance correlations between different age groups and race lengths.
+                </p>
+              </div>
+              <ChartCard title="Pace vs Age (All Distances)" fullWidth>
+                {overviewData ? (
+                  <Scatter
+                    data={buildOverviewScatterData() as any}
+                    options={{
+                      ...CHART_OPTS_BASE,
+                      plugins: {
+                        ...CHART_OPTS_BASE.plugins,
+                        legend: { 
+                          display: true, 
+                          position: "bottom",
+                          labels: { color: "#9ca3af", usePointStyle: true, padding: 20 }
+                        },
+                      },
+                      scales: {
+                        x: {
+                          ...CHART_OPTS_BASE.scales.x,
+                          title: { display: true, text: "Age (years)", color: "#6b7280" },
+                        },
+                        y: {
+                          ...CHART_OPTS_BASE.scales.y,
+                          title: { display: true, text: "Pace (min/km)", color: "#6b7280" },
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <NoData msg="No scatter data available." />
+                )}
+              </ChartCard>
             </section>
           </div>
         )}

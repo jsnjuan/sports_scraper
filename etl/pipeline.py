@@ -51,6 +51,14 @@ def time_to_seconds(time_str):
         return int(m) * 60 + int(float(s))
     return None
 
+def parse_age(age_val):
+    if age_val is None or str(age_val).strip() == "":
+        return None
+    try:
+        return int(float(age_val))
+    except:
+        return None
+
 data_dir = Path("data")
 
 print("Starting ETL Process...")
@@ -96,7 +104,7 @@ for site_dir in data_dir.iterdir():
                             gender = rec.get("branchename", "")
                             if gender:
                                 gender = gender[0].upper()
-                            age = rec.get("age")
+                            age = parse_age(rec.get("age"))
                             category = rec.get("categoryname")
                             finish_time_str = rec.get("totaltime")
                             
@@ -114,7 +122,7 @@ for site_dir in data_dir.iterdir():
                             gender = data_dict.get("gender", "")
                             if gender:
                                 gender = gender[0].upper()
-                            age = data_dict.get("age")
+                            age = parse_age(data_dict.get("age"))
                             category = data_dict.get("category")
                             finish_time_str = data_dict.get("time")
                             
@@ -123,7 +131,7 @@ for site_dir in data_dir.iterdir():
                             gender = rec.get("sexo", "")
                             if gender:
                                 gender = gender[0].upper()
-                            age = rec.get("edad")
+                            age = parse_age(rec.get("edad"))
                             category = rec.get("categoria")
                             finish_time_str = rec.get("tiempoChip")
                             

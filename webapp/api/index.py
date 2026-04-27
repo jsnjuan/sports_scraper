@@ -102,7 +102,7 @@ def get_stats(event_slug: str, distance: str):
 def get_overview():
     conn = get_db_connection()
     query = """
-    SELECT distance, gender, finish_time_seconds, event_slug 
+    SELECT distance, gender, age, finish_time_seconds, event_slug 
     FROM runners 
     WHERE finish_time_seconds IS NOT NULL AND gender IS NOT NULL
     """
@@ -113,7 +113,10 @@ def get_overview():
         return {}
 
     # Normalize gender
+    # We handle English (M/F), Spanish (V/M or H/M), and single letters
     df['gender'] = df['gender'].str[0].str.upper()
+    # Map Spanish 'V' (Varón) and 'H' (Hombre) to 'M' (Male)
+    df['gender'] = df['gender'].replace({'V': 'M', 'H': 'M'})
     df = df[df['gender'].isin(['M', 'F'])]
 
     # Normalize distance groups
@@ -157,6 +160,27 @@ def get_overview():
                 "female_counts": {str(m): count for m, count in r_female_counts.items()}
             })
 
+        # Scatter Data (Aggregated by Age/Gender for performance)
+        # Ensure age is numeric and drop invalid/empty values
+        dist_df['age'] = pd.to_numeric(dist_df['age'], errors='coerce')
+        scatter_df = dist_df.dropna(subset=['age', 'finish_time_seconds'])
+        scatter_points = []
+        if not scatter_df.empty:
+            # Group by age and gender to get median pace
+            agg_scatter = scatter_df.groupby(['age', 'gender'])['finish_time_seconds'].median().reset_index()
+            # Pace in minutes per KM
+            def calc_pace(row):
+                # Use precise distance for 21K (Half Marathon)
+                d_val = 21.0975 if dist == '21K' else float(dist.replace('K', ''))
+                return round((row['finish_time_seconds'] / d_val) / 60, 2)
+            
+            for _, row in agg_scatter.iterrows():
+                scatter_points.append({
+                    "age": int(row['age']),
+                    "gender": row['gender'],
+                    "pace": calc_pace(row)
+                })
+
         # Statistics
         m_mins = dist_df[dist_df['gender'] == 'M']['mins']
         f_mins = dist_df[dist_df['gender'] == 'F']['mins']
@@ -172,6 +196,7 @@ def get_overview():
             "female": [total_female_counts.get(m, 0) for m in all_mins],
             "total_participants": len(dist_df),
             "races": races_data,
+            "scatter": scatter_points,
             "stats": {
                 "fastest_male": get_stat(m_mins, min),
                 "fastest_female": get_stat(f_mins, min),
