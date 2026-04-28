@@ -11,7 +11,11 @@ async def run_event(browser_manager, driver, event_config):
 
     did_any_work = False
     categories = event_config["categories"]
-    for i, category in enumerate(categories):
+    if isinstance(event_config["base_url"], list):
+        categories_url_list = event_config["base_url"]
+    else:
+        categories_url_list = [event_config["base_url"] for i in range(len( event_config["categories"]))]
+    for i, (category, category_url) in enumerate(zip(categories, categories_url_list)):
 
         print(f"Starting category: {category}")
 
@@ -19,7 +23,8 @@ async def run_event(browser_manager, driver, event_config):
             browser_manager,
             driver,
             event_config,
-            category
+            category, 
+            category_url
         )
         
         if did_work:
@@ -31,11 +36,12 @@ async def run_event(browser_manager, driver, event_config):
     return did_any_work
 
 
-async def run_category(browser_manager, driver, event_config, category):
+async def run_category(browser_manager, driver, event_config, category, category_url):
 
     category_config = {
         **event_config,
-        "distance": category
+        "distance": category, 
+        "category_url":category_url,
     }
 
     did_work = await run_pages(browser_manager, driver, category_config)

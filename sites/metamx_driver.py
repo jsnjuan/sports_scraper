@@ -16,7 +16,7 @@ class MetamxDriver(BaseDriver):
             except Exception as e:
                 print("Error extracting competition_id: {e}")
 
-        url = event_config['base_url']
+        url = event_config['category_url']
         catches = {"metadata":None, "final_data":None}
         data_json_urls = set()
         competition_id = extract_competition_id(url)
