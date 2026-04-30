@@ -112,11 +112,7 @@ def get_overview():
     if df.empty:
         return {}
 
-    # Normalize gender
-    # We handle English (M/F), Spanish (V/M or H/M), and single letters
-    df['gender'] = df['gender'].str[0].str.upper()
-    # Map Spanish 'V' (Varón) and 'H' (Hombre) to 'M' (Male)
-    df['gender'] = df['gender'].replace({'V': 'M', 'H': 'M'})
+    # Keep M/F genders
     df = df[df['gender'].isin(['M', 'F'])]
 
     # Normalize distance groups

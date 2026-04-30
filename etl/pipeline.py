@@ -42,7 +42,7 @@ def extract_km(distance_str):
     # is identified as zone. Lets parse this specific case 
     if cleaned == 'zone':
         return 21.0
-    
+
     match = re.search(r'(\d+(?:[.,]\d+)?)\s*k', 
     cleaned,
     re.IGNORECASE)
