@@ -9,10 +9,7 @@ class MarcateDriver(BaseDriver):
         if page_number > 1:
             return NO_MORE_PAGES
 
-        # The base_url in config is something like:
-        # https://resultados.marcate.events/resultado/SPTMCAR1772557708
-        base_url = event_config['base_url']
-        
+        base_url = event_config['category_url']
         try:
             competition_id = base_url.rstrip('/').split("/")[-1]
         except Exception as e:
