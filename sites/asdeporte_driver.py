@@ -21,6 +21,8 @@ class AsDeporteDriver(BaseDriver):
             nonlocal graphql_data
             if "/_/graphql" in response.url and response.request.method == "POST":
                 try:
+                    if response.status != 200:
+                        print(f"GraphQL request returned status {response.status}")
                     data = await response.json()
                     if data and "data" in data:
                         target = data["data"].get("getEventResults") or data["data"].get("findResult")
@@ -30,18 +32,18 @@ class AsDeporteDriver(BaseDriver):
                                 "totalpages": target.get("totalPages", target.get("totalpages", 1))
                             }
                             response_event.set()
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"Error parsing GraphQL response: {e}")
 
         page.on("response", handle_response)
 
         try:
             await page.goto(url, wait_until="domcontentloaded")
             try:
-                await asyncio.wait_for(response_event.wait(), timeout=10.0)
+                await asyncio.wait_for(response_event.wait(), timeout=30.0)
                 print("Event set successfully!")
             except asyncio.TimeoutError:
-                print("Timeout waiting for graphql response!")
+                print("Timeout waiting for graphql response (30s)!")
             
             page.remove_listener("response", handle_response)
             
