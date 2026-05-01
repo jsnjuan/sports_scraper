@@ -7,7 +7,7 @@ from sites.asdeporte_driver import AsDeporteDriver
 from sites.cronocom_driver import CronocomDriver
 from sites.metamx_driver import MetamxDriver
 from sites.marcate_driver import MarcateDriver
-
+from sites.chronosport_driver import ChronosportDriver
 
 async def main():
 
@@ -27,10 +27,12 @@ async def main():
             driver = MetamxDriver()
         elif event["site"] == "marcate":
             driver = MarcateDriver()
+        elif event["site"] == "chronosport":
+            driver = ChronosportDriver()
         else:
             continue
 
-        print(f"Iniciando evento: {event['event_slug']}")
+        print(f"Starting event: {event['event_slug']}")
 
         did_work = await run_event(
             browser_manager,
@@ -42,7 +44,6 @@ async def main():
             await apply_delay(stage='event')
 
     await browser_manager.close()
-
 
 if __name__ == "__main__":
     asyncio.run(main())

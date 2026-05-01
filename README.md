@@ -5,34 +5,35 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 
-An end-to-end Data Engineering and Analytics project that scrapes running races results from multiple sports platforms in Mexico, normalizes the data through a robust ETL pipeline, and visualizes athlete performance metrics via a modern web dashboard.
+An end-to-end Data Engineering and Analytics project that scrapes mexican running races results from multiple sports platforms, normalizes the data through a robust ETL pipeline, and visualizes athlete performance metrics via a modern web dashboard. Take a look here: [Sports Analytics Dashboard](https://sports-scraper-bay.vercel.app/)
 
-## 🚀 Overview
+## Overview
 
 This project transforms fragmented, semi-structured sports data into actionable insights.
 
 ### Key Features
-- **Scalable Scraper Engine**: Modular driver-based architecture (`AsDeporte`, `CronoCom`, `MetaMX`) capable of handling diverse web structures and anti-bot measures.
-- **Robust ETL Pipeline**: Automated data extraction, cleaning (normalization of times, age groups, and categories), and loading into a sqlite database.
+- **Scalable Scraper Engine**: Modular driver-based architecture (`AsDeporte`, `Fhinix/CronoCom`, `MetaMX`, `Marcate`, `Chronosport`) capable of handling diverse web structures and anti-bot measures.
+- **Robust ETL Pipeline**: Automated data extraction, cleaning (normalization of times and age groups), and loading into a sqlite database.
 - **Advanced Analytics**: Visual analysis of finish time distributions and athlete-performance correlations.
 - **Serverless Deployment**: Full-stack integration with a FastAPI backend and Next.js frontend, optimized for Vercel.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
+%%{init: {'theme': 'neutral', 'themeVariables': { 'fontSize': '10px'}}}%%
 graph TD
-    A[Sports Sites: AsDeporte, Cronocom, Metamx] -->|Scraping| B(Python Scraper Engine)
+    A[Sports Sites: AsDeporte, Cronocom, Metamx, Marcate, Chronosport] -->|Scraping| B(Python Scraper Engine)
     B -->|JSON/Raw Data| C[Raw Data]
     C -->|ETL Processing| D{Normalization Logic}
     D -->|Structured Data| E[SQLite Database]
     E -->|FastAPI| F[Python Backend API]
     F -->|REST / JSON| G[Next.js Dashboard]
-    G -->|Visualization| H[Chart.js / Interactive Insights]
+    G -->|Visualization| H[Chart.js / Insights]
 ```
 
-### 🛠️ Tech Stack
+### Tech Stack
 - **Engine**: Python (Asyncio), Playwright (for dynamic content).
 - **Backend**: FastAPI, SQLite, Pandas.
 - **Frontend**: Next.js, Tailwind CSS, Chart.js.
@@ -40,13 +41,13 @@ graph TD
 
 ---
 
-## 📊 Data Engineering & Analytics Depth
+## Data Engineering & Analytics Depth
 
 ### 1. Data Normalization
 Sports data from multiple sites are expected to arrive in inconsistent formats (e.g., `1h 20m`, `01:20:00`, or total seconds). Our pipeline includes:
 - **Time Parsing**: Unified conversion of diverse string formats into `finish_time_seconds`.
 - **Deduplication**: Ensuring athlete records are unique across multi-day events.
-- **Feature Engineering**: Calculating `pace_seconds` (min/km) from distance and time to enable cross-race comparison.
+- **Feature Engineering**: Calculating pace (min/km) from distance and time to enable cross-race comparison.
 
 ### 2. Analytical Insights
 The dashboard provides three core analytical views:
@@ -56,7 +57,7 @@ The dashboard provides three core analytical views:
 
 ---
 
-## 💻 Installation & Usage
+## Installation & Usage
 
 ### Prerequisites
 - Python 3.10+
@@ -82,7 +83,7 @@ vercel dev --cwd webapp
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 The project is configured for **Vercel**. 
 - **Root Directory**: `webapp`
