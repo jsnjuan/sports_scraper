@@ -38,11 +38,17 @@ def extract_km(distance_str):
     
     cleaned = distance_str.lower().strip()
     
-    # The cdp race (carrera del dia del padre) has a special/preference group that
-    # is identified as zone. Lets parse this specific case 
+    # The cdp race (carrera del dia del padre) has a special/preference 
+    # group that is identified as zone. Lets parse this specific case 
     if cleaned == 'zone':
         return 21.0
-
+    
+    # Also the XL MEDIO MARATÓN INTERNACIONAL GUADALAJARA ELECTROLIT ® 2026 
+    # has the catefory named different as the kilometers convention 3K, 5K, etc.
+    # We are handling this specific case
+    if cleaned == 'medio maraton':
+        return 21.0
+    
     match = re.search(r'(\d+(?:[.,]\d+)?)\s*k', 
     cleaned,
     re.IGNORECASE)

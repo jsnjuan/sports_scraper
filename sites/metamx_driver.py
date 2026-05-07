@@ -1,4 +1,5 @@
 import asyncio
+import urllib.parse
 from sites.base_driver import BaseDriver, NO_MORE_PAGES
 
 class MetamxDriver(BaseDriver):
@@ -25,7 +26,8 @@ class MetamxDriver(BaseDriver):
 
         async def handle_response(response):
             nonlocal data_json_urls
-            if f"/rankings/{event_config['distance']}" in response.url and not catches["metadata"]:
+            unquoted_url = urllib.parse.unquote(response.url)
+            if f"/rankings/{event_config['distance']}" in unquoted_url and not catches["metadata"]:
                 print("--- First JSON detected in the network ---")
                 try:
                     metadata = await response.json()
@@ -40,7 +42,7 @@ class MetamxDriver(BaseDriver):
 
                 except Exception as e:
                     print(f"Error processing 1st JSON: {e}")
-            elif data_json_urls and any(candidate in response.url for candidate in data_json_urls):
+            elif data_json_urls and any(candidate in unquoted_url for candidate in data_json_urls):
                 print("--- Second JSON detected in the network ---")
                 try:
                     catches["final_data"] = await response.json()
@@ -59,9 +61,9 @@ class MetamxDriver(BaseDriver):
                 print("Event set successfully, both JSONs captured")
             except asyncio.TimeoutError:
                 if not catches["metadata"]:
-                    print("ERROR: 1st JSON captured, 2nd JSON never went through the network | URL didn't match.")
-                elif not catches["metadata"]:
-                    print("ERROR: URI was obtained, 2nd JSON was never loaded")
+                    print("ERROR: 1st JSON was never captured | URL didn't match.")
+                elif not catches["final_data"]:
+                    print("ERROR: 1st JSON captured, 2nd JSON was never loaded.")
             
             page.remove_listener("response", handle_response)
             
