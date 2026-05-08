@@ -111,7 +111,12 @@ for site_dir in data_dir.iterdir():
         if not event_dir.is_dir():
             continue
         event_slug = event_dir.name
-        
+        # This particular event seems to have some odd times that
+        # distort 3K and 10K races range, so before adding we will
+        # consider a closer look at the data in order to discard
+        # anomalies
+        if event_slug == '54_media_maraton_sierra_gorda':
+            continue
         for distance_dir in event_dir.iterdir():
             if not distance_dir.is_dir():
                 continue
